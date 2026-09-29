@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    image: exhibit-auth-checker:latest
+    container_name: exhibit-auth-checker
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # 容器内监听端口（右侧映射端口由 PORT 变量控制，默认 3000）
+      PORT: 3000
+      DATA_DIR: /app/data
+    volumes:
+      # SQLite 数据库文件持久化到宿主机，删除容器不丢数据
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/meta').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
