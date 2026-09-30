@@ -1,0 +1,19 @@
+{
+  "name": "exhibit-auth-checker",
+  "version": "1.0.0",
+  "description": "小型展馆数字展品使用授权核对系统",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "init-db": "node src/db-init.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

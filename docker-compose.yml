@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    image: exhibit-auth-checker:latest
+    container_name: exhibit-auth-checker
+    ports:
+      - "3000:3000"          # 宿主机端口:容器端口；本机访问 http://localhost:3000
+    volumes:
+      - app-data:/app/data   # SQLite 数据库持久化
+    environment:
+      PORT: "3000"
+      HOST: "0.0.0.0"
+      SEED_DEMO: "1"         # 1=空库时写入演示数据；0=不写入
+      # DB_PATH: /app/data/app.db
+    restart: unless-stopped
+
+volumes:
+  app-data:

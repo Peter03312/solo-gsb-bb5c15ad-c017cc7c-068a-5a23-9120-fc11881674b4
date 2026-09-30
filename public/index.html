@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字展品授权核验系统</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>数字展品使用授权核验</h1>
+  <div class="sub">小型展馆 · 素材来源链与授权覆盖核验 · 发布快照不可变</div>
+  <div id="basis" class="basis">核验依据版本：…</div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="materials" class="active">素材与来源</button>
+  <button data-tab="auths">授权登记</button>
+  <button data-tab="packages">展览包</button>
+  <button data-tab="help">使用说明</button>
+</nav>
+
+<main>
+  <!-- ========== 素材与来源 ========== -->
+  <section id="tab-materials" class="tab active">
+    <div class="cols">
+      <div class="card">
+        <h2>素材登记</h2>
+        <form id="form-material" class="form">
+          <input type="hidden" name="id">
+          <label>名称<input name="name" required placeholder="如：互动展项《城与人》"></label>
+          <label>类型<input name="kind" placeholder="图像 / 音频 / 视频 / 互动展项…"></label>
+          <label>备注<input name="note" placeholder="可选"></label>
+          <div class="btns">
+            <button type="submit" class="primary">保存素材</button>
+            <button type="button" id="material-reset" class="ghost">清空</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>来源关系（不得成环）</h2>
+        <form id="form-edge" class="form">
+          <label>来源素材（上游）
+            <select name="source_id" required></select>
+          </label>
+          <div class="arrow">被以下素材使用 ↓</div>
+          <label>使用素材（下游）
+            <select name="target_id" required></select>
+          </label>
+          <label>关系说明<input name="relation" placeholder="如：展项内嵌照片"></label>
+          <div class="btns"><button type="submit" class="primary">建立来源关系</button></div>
+          <div class="hint">含义：上游素材被下游素材使用。核验时沿每个入选项向上游遍历整条来源链。</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>素材列表</h2>
+      <table id="table-materials">
+        <thead><tr><th>ID</th><th>名称</th><th>类型</th><th>备注</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>现有来源关系</h2>
+      <table id="table-edges">
+        <thead><tr><th>来源（上游）</th><th></th><th>使用方（下游）</th><th>说明</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== 授权 ========== -->
+  <section id="tab-auths" class="tab">
+    <div class="card">
+      <h2 id="auth-form-title">登记授权</h2>
+      <form id="form-auth" class="form form-grid">
+        <input type="hidden" name="id">
+        <label>素材<select name="material_id" required></select></label>
+        <label>授权方<input name="licensor" required placeholder="如：某版权公司 / 继承人"></label>
+        <label>媒介<input name="medium" required list="dl-medium" placeholder="展厅大屏 / 网站 / *"></label>
+        <label>地区<input name="region" required list="dl-region" placeholder="中国大陆 / *"></label>
+        <label>生效日期<input name="start_date" type="date" required></label>
+        <label>失效日期<input name="end_date" type="date" required></label>
+        <label>授权文件/编号<input name="document" placeholder="可选，合同或邮件编号"></label>
+        <label class="check"><input type="checkbox" name="revoked"> 已撤销</label>
+        <div class="btns span2">
+          <button type="submit" class="primary">保存授权</button>
+          <button type="button" id="auth-reset" class="ghost">清空</button>
+        </div>
+      </form>
+      <datalist id="dl-medium">
+        <option value="展厅大屏"><option value="网站"><option value="移动应用"><option value="印刷品"><option value="*">
+      </datalist>
+      <datalist id="dl-region">
+        <option value="中国大陆"><option value="中国香港"><option value="中国台湾"><option value="北美"><option value="*">
+      </datalist>
+      <div class="hint">媒介、地区为精确匹配，<code>*</code> 为通配（全媒介/全球）。授权日期必须完整覆盖使用起止日期才算覆盖。</div>
+    </div>
+
+    <div class="card">
+      <h2>授权列表</h2>
+      <table id="table-auths">
+        <thead><tr>
+          <th>ID</th><th>素材</th><th>授权方</th><th>媒介</th><th>地区</th>
+          <th>有效期</th><th>状态</th><th>文件/编号</th><th>操作</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== 展览包 ========== -->
+  <section id="tab-packages" class="tab">
+    <div id="pkg-list-view">
+      <div class="card">
+        <h2>新建展览包</h2>
+        <form id="form-pkg" class="form inline">
+          <input name="name" required placeholder="展览包名称">
+          <button type="submit" class="primary">创建草稿</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>展览包列表</h2>
+        <table id="table-packages">
+          <thead><tr>
+            <th>ID</th><th>名称</th><th>状态</th><th>使用范围</th><th>展期</th>
+            <th>素材数</th><th>最近快照</th><th>操作</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="pkg-detail-view" hidden>
+      <button id="pkg-back" class="ghost">← 返回列表</button>
+      <div class="card">
+        <h2 id="pkg-title"></h2>
+        <div id="pkg-status-banner"></div>
+        <form id="form-pkg-edit" class="form form-grid">
+          <label>名称<input name="name" required></label>
+          <label>展示媒介<input name="medium" list="dl-medium" required></label>
+          <label>地区<input name="region" list="dl-region" required></label>
+          <label>开始日期<input name="start_date" type="date" required></label>
+          <label>结束日期<input name="end_date" type="date" required></label>
+          <div class="btns span2">
+            <button type="submit" class="primary">保存使用范围</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>素材清单</h2>
+        <div id="pkg-item-picker" class="picker"></div>
+        <div class="btns">
+          <button id="pkg-save-items" class="primary">保存清单</button>
+        </div>
+        <div class="hint">发布后清单与使用范围冻结；授权变更只会触发资格重算，不会改动已发布的快照。</div>
+      </div>
+
+      <div class="card">
+        <h2>核验与发布</h2>
+        <div class="btns">
+          <button id="pkg-verify" class="primary">核验资格</button>
+          <button id="pkg-publish" class="danger">发布（原子保存快照）</button>
+        </div>
+        <div id="verify-result"></div>
+      </div>
+
+      <div class="card">
+        <h2>发布快照（不可变）</h2>
+        <table id="table-snapshots">
+          <thead><tr><th>快照ID</th><th>发布时间</th><th>依据版本</th><th>使用范围</th><th>结果</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 帮助 ========== -->
+  <section id="tab-help" class="tab">
+    <div class="card doc">
+      <h2>使用说明</h2>
+      <ol>
+        <li><b>登记素材</b>：在“素材与来源”页录入每件数字素材。</li>
+        <li><b>建立来源关系</b>：指定“上游素材被下游素材使用”（如照片→互动展项）。系统拒绝任何会成环的关系。</li>
+        <li><b>登记授权</b>：为素材录入授权方、媒介、地区、有效期与撤销状态；<code>*</code> 表示全媒介/全球。</li>
+        <li><b>组成展览包</b>：创建草稿，勾选素材，填写展示媒介、地区与起止日期。</li>
+        <li><b>核验</b>：系统沿每个入选项的<b>全部来源链</b>检查每个节点，要求每个节点至少有一份
+          <i>未撤销</i>、媒介/地区匹配、且<b>覆盖整段展期</b>的授权；不合格节点及其来源路径会逐条列出。</li>
+        <li><b>发布</b>：仅当全部节点合格方可发布。发布在单个数据库事务内原子写入不可变的核验快照与素材清单。
+          若核验之后、发布之前有他人编辑了素材/关系/授权，系统报“核验依据已过期”，需重新核验后重试。</li>
+        <li><b>授权变更后的重算</b>：任何授权/关系/素材变更后，系统自动重算所有已发布包：仍然合格的状态不变；
+          仅不再合格的包标记为<span class="tag review">需复核</span>，原快照保留；重新核验合格后可再次发布生成新快照。</li>
+      </ol>
+      <h3>演示场景</h3>
+      <p>系统已自带演示数据。打开草稿《城与人》常设展（草稿）→ 核验，可看到配乐《晨间旋律》因授权 2026-06-30 到期、
+      无法覆盖全年展期而不合格，并展示来源路径；在“授权登记”中延长该授权或撤销某授权，回到展览包列表即可观察
+      已发布包自动变为“需复核”。</p>
+    </div>
+  </section>
+</main>
+
+<!-- 快照弹窗 -->
+<div id="modal" hidden>
+  <div class="modal-mask"></div>
+  <div class="modal-box">
+    <button id="modal-close" class="ghost modal-close">关闭</button>
+    <pre id="modal-content"></pre>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
